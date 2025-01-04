@@ -65,11 +65,20 @@ regd_users.put("/auth/review/:isbn", (req, res) => {
 
 regd_users.delete("/auth/review/:isbn", (req,res) => {
     const token = req.session.authorization["accessToken"];
-    const secret = 'access'; // Replace with your secret key
+    const secret = 'access';
 
     const decoded = jwt.verify(token, secret);
     const username = decoded.data;
 
+    
+    const book = books[req.params.isbn];
+
+    if(book){
+        delete book["reviews"][username];
+        res.status(200).json({message:"Review deleted"})
+    }else{
+        res.status(300).json({message:"no review exist for given isbn"})
+    }
     
 });
 
