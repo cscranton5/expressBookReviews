@@ -25,38 +25,69 @@ public_users.post("/register", (req,res) => {
 
 // Get the book list available in the shop
 public_users.get('/',function (req, res) {
-  
-  return res.status(200).send(JSON.stringify(books, null, 4));
+
+    bookPromise = new Promise ((resolve, reject) => {
+        resolve(books)
+    });
+
+    bookPromise.then((books) => {
+        res.status(200).send(JSON.stringify(books, null, 4));
+    })
 });
 
 // Get book details based on ISBN
 public_users.get('/isbn/:isbn',function (req, res) {
-  
+
     const isbn = req.params.isbn
-    return res.status(201).send(books[isbn]);
+
+    bookPromise = new Promise((resolve,reject) => {
+        resolve(books[isbn])
+    })
+
+    bookPromise.then((book) => {
+        res.status(201).send(book);
+    }) 
  });
   
 // Get book details based on author
 public_users.get('/author/:author',function (req, res) {
-  //Write your code here
+    bookPromise = new Promise((resolve, reject) => {
+    authorToFind = req.params.author;
 
-  let booksArray = Object.values(books);
+    if(authorToFind){
+        
+        let booksArray = Object.values(books);
+        
+        let booksByAuthor = booksArray.filter(book => book.author === authorToFind);
+        resolve(booksByAuthor);
+    }else {
+        reject("no Author given")
+    }
+  });
 
-  let authorToFind = req.params.author;
-  let booksByAuthor = booksArray.filter(book => book.author === authorToFind);
-
-
-  return res.status(200).send(JSON.stringify(booksByAuthor, null, 4));
+  bookPromise.then((result) => {
+    res.status(200).send(JSON.stringify(result, null, 4));
+  });
 });
 
 // Get all books based on title
 public_users.get('/title/:title',function (req, res) {
-    let booksArray = Object.values(books);
+    
+    bookPromise = new Promise((resolve, reject) => {
+        let titleToFind = req.params.title;
 
-    let title = req.params.title;
-    let booksByTitle = booksArray.filter(book => book.title === title);
-  
-    return res.status(200).send(JSON.stringify(booksByTitle, null, 4));
+        let booksArray = Object.values(books);
+
+        let title = req.params.title;
+        let booksByTitle = booksArray.filter(book => book.title === title);
+
+        resolve(booksByTitle);
+
+    })
+    
+   bookPromise.then((booksByTitle) => {
+        res.status(200).send(JSON.stringify(booksByTitle, null, 4));
+   })
 });
 
 //  Get book review
