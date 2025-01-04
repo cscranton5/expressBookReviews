@@ -5,16 +5,16 @@ const regd_users = express.Router();
 
 let users = [];
 
-const isValid = (username)=>{ //returns boolean
+const isValid = (username) => { //returns boolean
     return users.some((user) => user.username === username);
 }
 
-const authenticatedUser = (username,password)=>{ //returns boolean
+const authenticatedUser = (username, password) => { //returns boolean
     return users.some((user) => { return (user.username === username && user.password === password) })
 }
 
 //only registered users can login
-regd_users.post("/login", (req,res) => {
+regd_users.post("/login", (req, res) => {
 
     const username = req.body.username;
     const password = req.body.password;
@@ -31,30 +31,46 @@ regd_users.post("/login", (req,res) => {
                 accessToken
             }
             return res.status(200).send("User successfully logged in");
-        }else{
-            return res.status(422).json({message: "Login Failed"});
+        } else {
+            return res.status(422).json({ message: "Login Failed" });
         }
-    }else
-    {
-        return res.status(400).json({message: "username and-or password not given"});
+    } else {
+        return res.status(400).json({ message: "username and-or password not given" });
     }
 
 });
 
 // Add a book review
 regd_users.put("/auth/review/:isbn", (req, res) => {
-  
+
+    
+
+    const token = req.session.authorization["accessToken"];
+    const secret = 'access'; // Replace with your secret key
+
+    const decoded = jwt.verify(token, secret);
     
     const book = books[req.params.isbn];
-    const username = jwt.decode(req.session.accessToken).data;
+    const username = decoded.data;
+    const review = req.query.review;
 
-    if(book){
-        book["reviews"][username] = req.query.review;
-        res.status(200).json({message: "review added"})
-    }else{
-        res.status(402).json({message:"Invalid ISBN"})
+    if (book && review) {
+        book["reviews"][username] = review;
+        res.status(200).json({ message: "review added" });
+    } else {
+        res.status(400).json({ message: "review failed" });
     }
 
+});
+
+regd_users.delete("/auth/review/:isbn", (req,res) => {
+    const token = req.session.authorization["accessToken"];
+    const secret = 'access'; // Replace with your secret key
+
+    const decoded = jwt.verify(token, secret);
+    const username = decoded.data;
+
+    
 });
 
 module.exports.authenticated = regd_users;
